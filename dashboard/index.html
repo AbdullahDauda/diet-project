@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Diet Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<h1 style="text-align:center;">Diet Analysis Dashboard</h1>
+
+<div style="text-align:center; margin-bottom:20px;">
+    <select id="dietFilter">
+        <option value="all">All Diets</option>
+        <option value="Keto">Keto</option>
+        <option value="Vegan">Vegan</option>
+        <option value="Paleo">Paleo</option>
+    </select>
+
+    <button onclick="loadData()">Refresh Data</button>
+</div>
+
+<p id="executionTime" style="text-align:center;"></p>
+
+<div style="width:80%; margin:auto;">
+    <canvas id="barChart"></canvas>
+</div>
+
+<div style="width:80%; margin:auto;">
+    <canvas id="lineChart"></canvas>
+</div>
+
+<div style="width:50%; margin:auto;">
+    <canvas id="pieChart"></canvas>
+</div>
+
+</body>
+
+<script>
+
+let barChart, lineChart, pieChart;
+
+function loadData() {
+
+    const filter = document.getElementById("dietFilter").value;
+
+    const data = {
+        execution_time: "1.2s",
+        bar_chart: [
+            { diet: "Keto", protein: 120 },
+            { diet: "Vegan", protein: 80 },
+            { diet: "Paleo", protein: 95 }
+        ],
+        line_chart: [
+            { diet: "Keto", carbs: 50 },
+            { diet: "Vegan", carbs: 200 },
+            { diet: "Paleo", carbs: 120 }
+        ],
+        pie_chart: [
+            { diet: "Keto", fat: 70 },
+            { diet: "Vegan", fat: 30 },
+            { diet: "Paleo", fat: 50 }
+        ]
+    };
+
+    let bar = data.bar_chart;
+    let line = data.line_chart;
+    let pie = data.pie_chart;
+
+    if (filter !== "all") {
+        bar = bar.filter(d => d.diet === filter);
+        line = line.filter(d => d.diet === filter);
+        pie = pie.filter(d => d.diet === filter);
+    }
+
+    document.getElementById("executionTime").innerText =
+        "Execution Time: " + data.execution_time;
+
+    if (barChart) barChart.destroy();
+    if (lineChart) lineChart.destroy();
+    if (pieChart) pieChart.destroy();
+
+    barChart = new Chart(document.getElementById("barChart"), {
+        type: "bar",
+        data: {
+            labels: bar.map(d => d.diet),
+            datasets: [{ label: "Protein", data: bar.map(d => d.protein) }]
+        }
+    });
+
+    lineChart = new Chart(document.getElementById("lineChart"), {
+        type: "line",
+        data: {
+            labels: line.map(d => d.diet),
+            datasets: [{ label: "Carbs", data: line.map(d => d.carbs) }]
+        }
+    });
+
+    pieChart = new Chart(document.getElementById("pieChart"), {
+        type: "pie",
+        data: {
+            labels: pie.map(d => d.diet),
+            datasets: [{ data: pie.map(d => d.fat) }]
+        }
+    });
+}
+
+loadData();
+
+</script>
+
