@@ -21,6 +21,7 @@
 </div>
 
 <p id="executionTime" style="text-align:center;"></p>
+<p id="errorMessage" style="text-align:center; color:red;"></p>
 
 <div style="width:80%; margin:auto;">
     <canvas id="barChart"></canvas>
@@ -34,47 +35,47 @@
     <canvas id="pieChart"></canvas>
 </div>
 
-</body>
-
 <script>
+
+// 🔴 REPLACE THIS WITH YOUR REAL AZURE FUNCTION URL
+const API_URL = "https://YOUR-FUNCTION-APP.azurewebsites.net/api/YOUR_FUNCTION";
 
 let barChart, lineChart, pieChart;
 
-function loadData() {
+async function loadData() {
 
     const filter = document.getElementById("dietFilter").value;
 
-    const data = {
-        execution_time: "1.2s",
-        bar_chart: [
-            { diet: "Keto", protein: 120 },
-            { diet: "Vegan", protein: 80 },
-            { diet: "Paleo", protein: 95 }
-        ],
-        line_chart: [
-            { diet: "Keto", carbs: 50 },
-            { diet: "Vegan", carbs: 200 },
-            { diet: "Paleo", carbs: 120 }
-        ],
-        pie_chart: [
-            { diet: "Keto", fat: 70 },
-            { diet: "Vegan", fat: 30 },
-            { diet: "Paleo", fat: 50 }
-        ]
-    };
+    try {
+        document.getElementById("errorMessage").innerText = "Loading...";
 
-    let bar = data.bar_chart;
-    let line = data.line_chart;
-    let pie = data.pie_chart;
+        const response = await fetch(API_URL + "?diet=" + filter);
 
-    if (filter !== "all") {
-        bar = bar.filter(d => d.diet === filter);
-        line = line.filter(d => d.diet === filter);
-        pie = pie.filter(d => d.diet === filter);
+        if (!response.ok) {
+            throw new Error("API request failed");
+        }
+
+        const data = await response.json();
+
+        document.getElementById("executionTime").innerText =
+            "Execution Time: " + (data.execution_time || "N/A");
+
+        document.getElementById("errorMessage").innerText = "";
+
+        updateCharts(data);
+
+    } catch (error) {
+        console.error(error);
+        document.getElementById("errorMessage").innerText =
+            "Error loading data. Check API connection.";
     }
+}
 
-    document.getElementById("executionTime").innerText =
-        "Execution Time: " + data.execution_time;
+function updateCharts(data) {
+
+    const bar = data.bar_chart || [];
+    const line = data.line_chart || [];
+    const pie = data.pie_chart || [];
 
     if (barChart) barChart.destroy();
     if (lineChart) lineChart.destroy();
@@ -84,7 +85,10 @@ function loadData() {
         type: "bar",
         data: {
             labels: bar.map(d => d.diet),
-            datasets: [{ label: "Protein", data: bar.map(d => d.protein) }]
+            datasets: [{
+                label: "Protein",
+                data: bar.map(d => d.protein)
+            }]
         }
     });
 
@@ -92,7 +96,10 @@ function loadData() {
         type: "line",
         data: {
             labels: line.map(d => d.diet),
-            datasets: [{ label: "Carbs", data: line.map(d => d.carbs) }]
+            datasets: [{
+                label: "Carbs",
+                data: line.map(d => d.carbs)
+            }]
         }
     });
 
@@ -100,12 +107,17 @@ function loadData() {
         type: "pie",
         data: {
             labels: pie.map(d => d.diet),
-            datasets: [{ data: pie.map(d => d.fat) }]
+            datasets: [{
+                data: pie.map(d => d.fat)
+            }]
         }
     });
 }
 
+// Auto load on start
 loadData();
 
 </script>
 
+</body>
+</html>
