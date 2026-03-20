@@ -8,3 +8,6 @@ __pycache__/
 venv/
 
 local.settings.json
+.env
+.env.*
+*.env
